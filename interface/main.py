@@ -12,6 +12,7 @@ from taxifare.ml_logic.preprocessor import preprocess_features
 from taxifare.ml_logic.registry import load_model, save_model, save_results
 from taxifare.ml_logic.registry import mlflow_run, mlflow_transition_model
 
+
 def preprocess(min_date:str = '2009-01-01', max_date:str = '2015-01-01') -> None:
     """
     - Query the raw dataset from Le Wagon's BigQuery dataset
@@ -90,13 +91,9 @@ def train(
     print(Fore.MAGENTA + "\n⭐️ Use case: train" + Style.RESET_ALL)
     print(Fore.BLUE + "\nLoading preprocessed validation data..." + Style.RESET_ALL)
 
-    min_date = parse(min_date).strftime('%Y-%m-%d') # e.g '2009-01-01'
-    max_date = parse(max_date).strftime('%Y-%m-%d') # e.g '2009-01-01'
+    min_date = parse(min_date).strftime('%Y-%m-%d')
+    max_date = parse(max_date).strftime('%Y-%m-%d')
 
-    # Load processed data using `get_data_with_cache` in chronological order
-    # Try it out manually on console.cloud.google.com first!
-
-    # Below, our columns are called ['_0', '_1'....'_66'] on BQ, student's column names may differ
     query = f"""
         SELECT * EXCEPT(_0)
         FROM `{GCP_PROJECT}`.{BQ_DATASET}.processed_{DATA_SIZE}
@@ -116,6 +113,7 @@ def train(
         print("❌ Not enough processed data retrieved to train on")
         return None
 
+
     # Create (X_train_processed, y_train, X_val_processed, y_val)
     train_length = int(len(data_processed)*(1-split_ratio))
 
@@ -127,6 +125,7 @@ def train(
 
     X_val_processed = data_processed_val[:, :-1]
     y_val = data_processed_val[:, -1]
+
 
     # Train model using `model.py`
     model = load_model()
@@ -153,7 +152,7 @@ def train(
     # Save results on the hard drive using taxifare.ml_logic.registry
     save_results(params=params, metrics=dict(mae=val_mae))
 
-    # Save model weight on the hard drive (and optionally on GCS too!)
+    # Save model weight on the hard drive
     save_model(model=model)
 
     # The latest model should be moved to staging
@@ -163,6 +162,7 @@ def train(
     print("✅ train() done \n")
 
     return val_mae
+
 
 
 @mlflow_run
@@ -183,7 +183,7 @@ def evaluate(
     min_date = parse(min_date).strftime('%Y-%m-%d') # e.g '2009-01-01'
     max_date = parse(max_date).strftime('%Y-%m-%d') # e.g '2009-01-01'
 
-    # Query your BigQuery processed table and get data_processed using `get_data_with_cache`
+    # Query BigQuery processed table and get data_processed using `get_data_with_cache`
     query = f"""
         SELECT * EXCEPT(_0)
         FROM `{GCP_PROJECT}`.{BQ_DATASET}.processed_{DATA_SIZE}
@@ -211,7 +211,7 @@ def evaluate(
     mae = metrics_dict["mae"]
 
     params = dict(
-        context="evaluate", # Package behavior
+        context="evaluate", # Package behaviour
         training_set_size=DATA_SIZE,
         row_count=len(X_new)
     )
@@ -221,6 +221,7 @@ def evaluate(
     print("✅ evaluate() done \n")
 
     return mae
+
 
 
 def pred(X_pred: pd.DataFrame = None) -> np.ndarray:

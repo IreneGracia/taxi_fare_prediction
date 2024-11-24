@@ -16,7 +16,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df = df.astype(DTYPES_RAW)
 
     # Remove buggy transactions
-    df = df.drop_duplicates()  # TODO: handle whether data is consumed in chunks directly in the data source
+    df = df.drop_duplicates()
     df = df.dropna(how='any', axis=0)
 
     df = df[(df.dropoff_latitude != 0) | (df.dropoff_longitude != 0) |
@@ -37,6 +37,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     print("✅ data cleaned")
 
     return df
+
 
 def get_data_with_cache(
         gcp_project:str,
@@ -66,6 +67,8 @@ def get_data_with_cache(
 
     return df
 
+
+
 def load_data_to_bq(
         data: pd.DataFrame,
         gcp_project:str,
@@ -83,14 +86,6 @@ def load_data_to_bq(
     print(Fore.BLUE + f"\nSave data to BigQuery @ {full_table_name}...:" + Style.RESET_ALL)
 
     # Load data onto full_table_name
-
-    # 🎯 HINT for "*** TypeError: expected bytes, int found":
-    # After preprocessing the data, your original column names are gone (print it to check),
-    # so ensure that your column names are *strings* that start with either 
-    # a *letter* or an *underscore*, as BQ does not accept anything else
-
-    # TODO: simplify this solution if possible, but students may very well choose another way to do it
-    # We don't test directly against their own BQ tables, but only the result of their query
     data.columns = [f"_{column}" if not str(column)[0].isalpha() and not str(column)[0] == "_" else str(column) for column in data.columns]
 
     client = bigquery.Client()
@@ -103,6 +98,6 @@ def load_data_to_bq(
 
     # Load data
     job = client.load_table_from_dataframe(data, full_table_name, job_config=job_config)
-    result = job.result()  # wait for the job to complete
-
+    result = job.result()
+    
     print(f"✅ Data saved to bigquery, with shape {data.shape}")
