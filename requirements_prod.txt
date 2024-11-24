@@ -1,5 +1,5 @@
-# Feel free to use this file to list the strict minimum requirements to copy inside your docker container in production
-# You may want to remove dev requirements such as pytest, ipykernel, matplotlib etc...
+# Uses this file to list the strict minimum requirements to copy inside the docker container in production
+# Eg. by removing dev requirements such as pytest, ipykernel, matplotlib etc...
 
 # $CHA_BEGIN
 colorama
